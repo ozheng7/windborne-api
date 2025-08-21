@@ -7,11 +7,16 @@ const BalloonGlobe = () => {
   const [selectedBalloon, setSelectedBalloon] = useState(null);
 
   useEffect(() => {
-    fetch(`/balloons/${selectedHour}.json`)
-      .then((res) => res.json())
+    const url = `${import.meta.env.BASE_URL}balloons/${selectedHour}.json`;
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        return res.json();
+      })
       .then((data) => {
         const formattedPoints = data.map((coords, index) => ({
-          id: `balloon-${index}`, // Use array index as persistent ID
+          id: `balloon-${index}`,
           lat: coords[1],
           lng: coords[0],
           alt: coords[2] / 1000,
@@ -20,6 +25,10 @@ const BalloonGlobe = () => {
           originalCoords: coords,
         }));
         setPoints(formattedPoints);
+      })
+      .catch((err) => {
+        console.error(err);
+        setPoints([]); // Clear points if JSON fails to load
       });
   }, [selectedHour]);
 
